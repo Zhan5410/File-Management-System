@@ -7,33 +7,40 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.JSlider;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import com.util.SystemParameters;
 
 public class fms {
 	private JFrame jframe = null;
+	private ArrayList<JComponent> GUIConponent = null;
 
 	private JButton jbt = null;
 
 	private JTextField jtf_filepathway = null;
-
 	private JTextArea jtf_information = null;
 	private JTextArea jtf_filecontent = null;
 	private JScrollPane jsp_filecontent = null;
 	private JScrollPane jsp_information = null;
+	private JComponent[] jtf = null;
 
     private JCheckBox[] jcheckbox = null;
     private JCheckBox jcb_filelength = null;
@@ -51,9 +58,17 @@ public class fms {
     private JRadioButton[] jradiobutton = null;
     private JRadioButton jrb_1 = null;
     private JRadioButton jrb_2 = null;
+	private JRadioButton jrb_usersetting = null;
 
-	private JComponent[] jtf = null;
-	private ArrayList<JComponent> GUIConponent = null;
+	private JComboBox<String> jcob_foreground = null;
+	private JComboBox<String> jcob_background = null;
+
+	private JLabel jlbtextsize = null;
+	private JLabel jlb_forecolor = null;
+	private JLabel jlb_backcolor = null;
+	private JLabel jlb_slider = null;
+
+	private JSlider slider_text = null;
 
 	private ActionListener[] JButtonActionListener = null;
 	private ActionListener openfile = null;
@@ -61,7 +76,7 @@ public class fms {
 	private ActionListener encode = null;
 	private ActionListener decode = null;
 	
-	public void set() {
+	private void set() {
 		jframe = new JFrame(SystemParameters.systemname);
 
 		GUIConponent = new ArrayList<JComponent>(); 
@@ -84,8 +99,6 @@ public class fms {
 							   jsp_information,
 							   jsp_filecontent
 		};
-		
-
 
 		doactionlistener();
 		JButtonActionListener = new ActionListener[]{openfile,
@@ -104,11 +117,99 @@ public class fms {
                         jtf_filecontent.setBackground(SystemParameters.textstyle[Integer.valueOf(e.getActionCommand())][1]);
                         jtf_information.setForeground(SystemParameters.textstyle[Integer.valueOf(e.getActionCommand())][0]);
                         jtf_information.setBackground(SystemParameters.textstyle[Integer.valueOf(e.getActionCommand())][1]);
+						jcob_foreground.setEnabled(false);
+						jcob_background.setEnabled(false);
                     }
                 }
             }); 
         }
+		jrb_usersetting = new JRadioButton("自訂");
+		jrb_usersetting.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				jcob_foreground.setEnabled(true);
+				jcob_background.setEnabled(true);
+			}
+			
+		});
+
+		
+		slider_text = new JSlider(JSlider.HORIZONTAL,0,100,12);
+		slider_text.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				Font font = jtf_information.getFont().deriveFont((float)slider_text.getValue());
+				jtf_information.setFont(font);
+				jtf_filecontent.setFont(font);
+				jlbtextsize.setText(String.valueOf(slider_text.getValue()));
+			}
+			
+		});
+
+
+
+		docombobox();
+
+
+
+		jlb_forecolor = new JLabel(SystemParameters.objText[7]);
+		jlb_backcolor = new JLabel(SystemParameters.objText[8]);
+		jlb_slider = new JLabel(SystemParameters.objText[9]);
+		
+
+		
+
+		jlbtextsize = new JLabel(String.valueOf(slider_text.getValue()));
+		
+
 	}
+
+	private void docombobox(){
+		jcob_foreground = new JComboBox<String>();
+		jcob_background = new JComboBox<String>();
+		for(int i=0 ; i<SystemParameters.objcolor.length ; i++){
+			jcob_foreground.addItem(SystemParameters.objcolor[i]);
+			jcob_background.addItem(SystemParameters.objcolor[i]);
+		}
+		jcob_foreground.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String color_foreground = (String)jcob_foreground.getSelectedItem();
+				String color_background = (String)jcob_background.getSelectedItem();
+				changetextcolor(color_foreground,color_background);
+			}
+			
+		});
+	};
+
+	private void changetextcolor(String forecolor,String backcolor){
+		jtf_filecontent.setForeground(getcolor(forecolor));
+        jtf_filecontent.setBackground(getcolor(backcolor));
+        jtf_information.setForeground(getcolor(forecolor));
+        jtf_information.setBackground(getcolor(backcolor));
+	};
+
+	private Color getcolor(String color){
+		switch (color) {
+			case "黑色":
+				return Color.BLACK;
+			case "黃色":
+				return Color.YELLOW;
+			case "灰色":
+				return Color.GRAY;
+			case "綠色":
+				return Color.GREEN;
+			case "紅色":
+				return Color.RED;
+			case "藍色":
+				return Color.BLUE;
+			default:
+				return null;
+		}
+	};
 
     private void doradio(){
 		jrb_1 = new JRadioButton("樣式1",true);
@@ -162,7 +263,7 @@ public class fms {
 	}
 	
 	private void run() {
-		jframe.setSize(800, 300);
+		jframe.setSize(800, 600);
 		jframe.setLayout(new GridBagLayout());
 		jframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
@@ -193,6 +294,22 @@ public class fms {
         for(int i=0 ; i<jradiobutton.length ; i++){
             GUIConponent.add(jradiobutton[i]);
         }
+
+		buttongroup.add(jrb_usersetting);
+		GUIConponent.add(jrb_usersetting);
+
+		//handle Label
+		GUIConponent.add(jlb_forecolor);
+		GUIConponent.add(jlb_backcolor);
+		GUIConponent.add(jlb_slider);
+
+		//handle combobox
+		GUIConponent.add(jcob_foreground);
+		GUIConponent.add(jcob_background);
+
+		//handle silder
+		GUIConponent.add(slider_text);
+		GUIConponent.add(jlbtextsize);
 
  		//add
 		for(int i=0 ; i<GUIConponent.size() ; i++){
@@ -284,6 +401,7 @@ public class fms {
 		c.anchor = SystemParameters.gbc[i][7];
 		jframe.add(GUIConponent.get(i),c);
 	}
+
 
 
 
